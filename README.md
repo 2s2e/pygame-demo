@@ -14,12 +14,14 @@ A basic Pygame boilerplate starter code for creating games and interactive appli
 ## Installation
 
 1. Clone this repository:
+
 ```bash
 git clone https://github.com/2s2e/pygame-demo.git
 cd pygame-demo
 ```
 
 2. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -27,6 +29,7 @@ pip install -r requirements.txt
 ## Usage
 
 Run the main script:
+
 ```bash
 python main.py
 ```
@@ -36,6 +39,7 @@ Press `ESC` or close the window to exit.
 ## Customization
 
 You can customize the following constants in `main.py`:
+
 - `SCREEN_WIDTH`: Width of the game window (default: 800)
 - `SCREEN_HEIGHT`: Height of the game window (default: 600)
 - `FPS`: Frames per second (default: 60)
@@ -44,8 +48,26 @@ You can customize the following constants in `main.py`:
 ## Next Steps
 
 This boilerplate provides a foundation for:
+
 - Adding sprites and images
 - Implementing game objects
 - Creating menus and UI elements
 - Adding sound effects and music
 - Building game mechanics
+
+## Concepts to Teach
+
+- Functions
+- Conditionals
+- Lists
+- Loops
+- Dictionary
+- References
+
+## Game Ideas
+
+- Snake
+- Asteroids
+- Yintang Catch
+- Undertale Sans
+- Frogger
