@@ -11,6 +11,20 @@ WIDTH = 800
 HEIGHT = 600
 FPS = 60
 BACKGROUND_COLOR = (30, 30, 30)
+INGREDIENTS = [
+    {"name": "Bok Choy", "points": 5},
+    {"name": "Mushroom", "points": 3},
+    {"name": "Enoki Mushroom", "points": 4},
+    {"name": "Napa Cabbage", "points": 2},
+    {"name": "Fish Cake", "points": 6},
+    {"name": "Tofu", "points": 4},
+    {"name": "Lotus Root", "points": 5},
+    {"name": "Udon Noodles", "points": 3},
+    {"name": "Beef Slice", "points": 7},
+    {"name": "Shrimp", "points": 6},
+    {"name": "Fish", "points": 5},
+    {"name": "Fish Ball", "points": 4},
+]
 
 # Create the screen
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -29,6 +43,7 @@ player_speed = 6
 # --- Falling object settings ---
 DROP_WIDTH = 30
 DROP_HEIGHT = 30
+DROP_TIME = 1000  # milliseconds
 drop_x = random.randint(0, WIDTH - DROP_WIDTH)
 drop_y = -DROP_HEIGHT  # start above the screen
 drop_speed = 5
@@ -79,7 +94,8 @@ class Ingredient:
 
 
 # objects
-vegetables = []
+ingredients = []
+
 
 # SHOWCASE
 while running:
@@ -105,26 +121,35 @@ while running:
         player_x = WIDTH - PLAYER_WIDTH
 
     # ---- Drop movement ----
-    drop_y += drop_speed
+    # drop_y += drop_speed
 
-    # If the drop goes off the bottom, reset it to the top in a random x
-    if drop_y > HEIGHT:
-        drop_y = -DROP_HEIGHT
-        drop_x = random.randint(0, WIDTH - DROP_WIDTH)
+    for ingredient in ingredients:
+        ingredient.update()
+        ingredient.draw(screen)
+
+        # Remove ingredient if it goes off the bottom
+        if ingredient.y > HEIGHT:
+            ingredients.remove(ingredient)
 
     # Fill the screen with background color
     screen.fill(BACKGROUND_COLOR)
 
-    # ---- Build rects for collision ----
+    # ---- Build rects for player  ----
     player_rect = pygame.Rect(player_x, player_y, PLAYER_WIDTH, PLAYER_HEIGHT)
-    drop_rect = pygame.Rect(drop_x, drop_y, DROP_WIDTH, DROP_HEIGHT)
 
-    # ---- Collision check ----
-    if player_rect.colliderect(drop_rect):
-        score += 1
-        # Reset the drop after it's caught
-        drop_y = -DROP_HEIGHT
-        drop_x = random.randint(0, WIDTH - DROP_WIDTH)
+    # ---- Build rects for ingredients
+    # drop_rect = pygame.Rect(drop_x, drop_y, DROP_WIDTH, DROP_HEIGHT)
+    for ingredient in ingredients:
+        drop_rect = ingredient.get_rect()
+        pygame.draw.rect(
+            screen,
+            ingredient.color,
+            drop_rect,
+        )
+        # ---- Collision check ----
+        if player_rect.colliderect(drop_rect):
+            score += ingredient.points
+            ingredients.remove(ingredient)
 
     # Draw the player
     pygame.draw.rect(
@@ -133,10 +158,22 @@ while running:
         (player_x, player_y, PLAYER_WIDTH, PLAYER_HEIGHT),
     )
 
-    # Draw falling object
-    pygame.draw.rect(
-        screen, (255, 200, 0), (drop_x, drop_y, DROP_WIDTH, DROP_HEIGHT)  # yellow-ish
-    )
+    # Spawn falling object
+    if drop_timer <= 0:
+        # reset the drop timer
+        drop_timer = random.randint(DROP_TIME - 500, DROP_TIME + 500)  # reset timer
+        ingredient = random.choice(INGREDIENTS)
+        # create the ingredient object
+        ingredient_obj = Ingredient(
+            name=ingredient["name"],
+            points=ingredient["points"],
+            width=DROP_WIDTH,
+            height=DROP_HEIGHT,
+            speed=drop_speed,
+        )
+        ingredients.append(ingredient_obj)
+    else:
+        drop_timer -= clock.get_time()
 
     # Draw score
     score_text = font.render(f"Score: {score}", True, (255, 255, 255))

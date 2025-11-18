@@ -71,3 +71,14 @@ This boilerplate provides a foundation for:
 - Yintang Catch
 - Undertale Sans
 - Frogger
+
+## Hot Pot
+
+- Bok Choy
+- Mushrooms
+- Enoki Mushrooms
+- Napa Cabbage
+- Fish Cake
+- Tofu
+- Udon Noodles
+- Sliced Meat
