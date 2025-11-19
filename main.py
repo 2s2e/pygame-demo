@@ -39,7 +39,8 @@ PLAYER_HEIGHT = 20
 GRAVITY = 9.8 / FPS  # simulate gravity for falling objects
 player_x = WIDTH // 2 - PLAYER_WIDTH // 2
 player_y = HEIGHT - PLAYER_HEIGHT - 10
-player_speed = 6
+PLAYER_SPEED = 6
+SPRINT_FACTOR = 2
 
 # --- Falling object settings ---
 ITEM_WIDTH = 30
@@ -145,11 +146,15 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
 
+    # this is a dictionary! wow!
     keys = pygame.key.get_pressed()
+    movement = PLAYER_SPEED
+    if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]:
+        movement *= SPRINT_FACTOR
     if keys[pygame.K_LEFT]:
-        player_x -= player_speed
+        player_x -= movement
     if keys[pygame.K_RIGHT]:
-        player_x += player_speed
+        player_x += movement
 
     # Keep player inside screen bounds
     if player_x < 0:
