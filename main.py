@@ -6,24 +6,44 @@ import sys
 # Initialize Pygame
 pygame.init()
 
+ITEM_WIDTH = 50
+ITEM_HEIGHT = 50
+
+# load all the game assets
+bok_choy_image = pygame.image.load("hot_pot_assets/bokchoy72.png")
+bok_choy_image = pygame.transform.scale(bok_choy_image, (ITEM_WIDTH, ITEM_HEIGHT))
+mushroom_image = pygame.image.load("hot_pot_assets/kingoyster72.png")
+mushroom_image = pygame.transform.scale(mushroom_image, (ITEM_WIDTH, ITEM_HEIGHT))
+enoki_image = pygame.image.load("hot_pot_assets/enoki72.png")
+enoki_image = pygame.transform.scale(enoki_image, (ITEM_WIDTH, ITEM_HEIGHT))
+cabbage_image = pygame.image.load("hot_pot_assets/cabbage72.png")
+cabbage_image = pygame.transform.scale(cabbage_image, (ITEM_WIDTH, ITEM_HEIGHT))
+tofu_image = pygame.image.load("hot_pot_assets/tofu72.png")
+tofu_image = pygame.transform.scale(tofu_image, (ITEM_WIDTH, ITEM_HEIGHT))
+lotus_image = pygame.image.load("hot_pot_assets/lotusroot72.png")
+lotus_image = pygame.transform.scale(lotus_image, (ITEM_WIDTH, ITEM_HEIGHT))
+noodles_image = pygame.image.load("hot_pot_assets/noodles72.png")
+noodles_image = pygame.transform.scale(noodles_image, (ITEM_WIDTH, ITEM_HEIGHT))
+beef_image = pygame.image.load("hot_pot_assets/beef72.png")
+beef_image = pygame.transform.scale(beef_image, (ITEM_WIDTH, ITEM_HEIGHT))
+shrimp_image = pygame.image.load("hot_pot_assets/shrimp72.png")
+shrimp_image = pygame.transform.scale(shrimp_image, (ITEM_WIDTH, ITEM_HEIGHT))
+
 # Constants
 WIDTH = 800
 HEIGHT = 600
 FPS = 60
 BACKGROUND_COLOR = (30, 30, 30)
 INGREDIENTS = [
-    {"name": "Bok Choy", "points": 5},
-    {"name": "Mushroom", "points": 3},
-    {"name": "Enoki Mushroom", "points": 4},
-    {"name": "Napa Cabbage", "points": 2},
-    {"name": "Fish Cake", "points": 6},
-    {"name": "Tofu", "points": 4},
-    {"name": "Lotus Root", "points": 5},
-    {"name": "Udon Noodles", "points": 3},
-    {"name": "Beef Slice", "points": 7},
-    {"name": "Shrimp", "points": 6},
-    {"name": "Fish", "points": 5},
-    {"name": "Fish Ball", "points": 4},
+    {"name": "Bok Choy", "points": 5, "image": bok_choy_image},
+    {"name": "Mushroom", "points": 3, "image": mushroom_image},
+    {"name": "Enoki Mushroom", "points": 4, "image": enoki_image},
+    {"name": "Napa Cabbage", "points": 2, "image": cabbage_image},
+    {"name": "Tofu", "points": 4, "image": tofu_image},
+    {"name": "Lotus Root", "points": 5, "image": lotus_image},
+    {"name": "Udon Noodles", "points": 3, "image": noodles_image},
+    {"name": "Beef Slice", "points": 7, "image": beef_image},
+    {"name": "Shrimp", "points": 6, "image": shrimp_image},
 ]
 
 # Create the screen
@@ -40,15 +60,15 @@ GRAVITY = 9.8 / FPS  # simulate gravity for falling objects
 player_x = WIDTH // 2 - PLAYER_WIDTH // 2
 player_y = HEIGHT - PLAYER_HEIGHT - 10
 PLAYER_SPEED = 6
-SPRINT_FACTOR = 2
+SPRINT_FACTOR = 3
 
 # --- Falling object settings ---
 ITEM_WIDTH = 30
 ITEM_HEIGHT = 30
 START_HEIGHT = 100
 DROP_TIME = 500  # milliseconds
-MAX_X_SPEED = 10
-MIN_X_SPEED = 5
+MAX_X_SPEED = 12
+MIN_X_SPEED = 7
 drop_x = random.randint(0, WIDTH - ITEM_WIDTH)
 drop_y = -ITEM_HEIGHT  # start above the screen
 drop_speed = 5
@@ -64,9 +84,18 @@ font = pygame.font.Font(None, 36)
 running = True
 
 
+# Ingredient class
 class Ingredient:
     def __init__(
-        self, name, points, width=30, height=30, speed=5, start_x=None, start_y=None
+        self,
+        name,
+        points,
+        width=30,
+        height=30,
+        speed=5,
+        start_x=None,
+        start_y=None,
+        img=None,
     ):
         self.name = name
         self.points = points
@@ -74,6 +103,7 @@ class Ingredient:
         self.height = height
         self.speed_x = speed
         self.speed_y = -3
+        self.img = img
 
         # Start at a random horizontal position, above the screen
         self.x = start_x if start_x is not None else random.randint(0, WIDTH - width)
@@ -97,13 +127,19 @@ class Ingredient:
         return pygame.Rect(self.x, self.y, self.width, self.height)
 
     def draw(self, screen):
-        pygame.draw.rect(screen, self.color, self.get_rect())
+        # pygame.draw.rect(screen, self.color, self.get_rect())
+        if self.img:
+            screen.blit(self.img, (self.x, self.y))
+        else:
+            pygame.draw.rect(screen, self.color, self.get_rect())
+        pass
 
 
 # objects
 ingredients = []
 
 
+# throw an ingredient in from either end
 def spawn_ingredient(ingredients_list):
     # pick the ingredient
     ingredient = random.choice(INGREDIENTS)
@@ -126,6 +162,7 @@ def spawn_ingredient(ingredients_list):
         speed=speed_x,
         start_x=spawn_point[0],
         start_y=spawn_point[1],
+        img=ingredient["image"],
     )
     ingredients_list.append(ingredient_obj)
 
@@ -135,10 +172,14 @@ def handle_collision(ing1, ing2):
     ing1.speed_x, ing2.speed_x = ing2.speed_x, ing1.speed_x
 
 
-# SHOWCASE
+def handle_bounce(ing1):
+    ing1.speed_x = -ing1.speed_x
+
+
+# main game loop
 while running:
     # Handle events
-    # SHOWCASE
+    # get input
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -146,7 +187,7 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
 
-    # this is a dictionary! wow!
+    # this is a dictionary!
     keys = pygame.key.get_pressed()
     movement = PLAYER_SPEED
     if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]:
@@ -194,6 +235,20 @@ while running:
             rect2 = ingredients[j].get_rect()
             if rect1.colliderect(rect2):
                 handle_collision(ingredients[i], ingredients[j])
+
+    # ---- Bounce off walls ----
+    for ingredient in ingredients:
+        going_off_left = ingredient.x <= 0 and ingredient.speed_x < 0
+        going_off_right = (
+            ingredient.x + ingredient.width >= WIDTH and ingredient.speed_x > 0
+        )
+        if (
+            going_off_left
+            and ingredient.speed_x < 0
+            or going_off_right
+            and ingredient.speed_x > 0
+        ):
+            handle_bounce(ingredient)
 
     # Draw the player
     pygame.draw.rect(
