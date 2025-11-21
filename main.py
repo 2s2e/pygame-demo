@@ -59,8 +59,8 @@ PLAYER_HEIGHT = 20
 GRAVITY = 9.8 / FPS  # simulate gravity for falling objects
 player_x = WIDTH // 2 - PLAYER_WIDTH // 2
 player_y = HEIGHT - PLAYER_HEIGHT - 10
-PLAYER_SPEED = 6
-SPRINT_FACTOR = 3
+PLAYER_SPEED = 10
+SPRINT_FACTOR = 2.5
 
 # --- Falling object settings ---
 ITEM_WIDTH = 30
@@ -142,7 +142,7 @@ ingredients = []
 # throw an ingredient in from either end
 def spawn_ingredient(ingredients_list):
     # pick the ingredient
-    ingredient = random.choice(INGREDIENTS)
+    ingredient_settings = random.choice(INGREDIENTS)
 
     # pick the spawn point
     spawn_point = random.choice(spawn_points)
@@ -155,14 +155,14 @@ def spawn_ingredient(ingredients_list):
 
     # create the ingredient object
     ingredient_obj = Ingredient(
-        name=ingredient["name"],
-        points=ingredient["points"],
+        name=ingredient_settings["name"],
+        points=ingredient_settings["points"],
         width=ITEM_WIDTH,
         height=ITEM_HEIGHT,
         speed=speed_x,
         start_x=spawn_point[0],
         start_y=spawn_point[1],
-        img=ingredient["image"],
+        img=ingredient_settings["image"],
     )
     ingredients_list.append(ingredient_obj)
 
@@ -188,13 +188,13 @@ while running:
                 running = False
 
     # this is a dictionary!
-    keys = pygame.key.get_pressed()
+    keyboard_input = pygame.key.get_pressed()
     movement = PLAYER_SPEED
-    if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]:
+    if keyboard_input[pygame.K_LSHIFT] or keyboard_input[pygame.K_RSHIFT]:
         movement *= SPRINT_FACTOR
-    if keys[pygame.K_LEFT]:
+    if keyboard_input[pygame.K_LEFT]:
         player_x -= movement
-    if keys[pygame.K_RIGHT]:
+    if keyboard_input[pygame.K_RIGHT]:
         player_x += movement
 
     # Keep player inside screen bounds
@@ -206,29 +206,31 @@ while running:
     # ---- Drop movement ----
     # drop_y += drop_speed
 
-    # Fill the screen with background color
-    screen.fill(BACKGROUND_COLOR)
+    # Spawn falling objects
+    if drop_timer <= 0:
+        spawn_ingredient(ingredients)
+        drop_timer = random.randint(DROP_TIME - 500, DROP_TIME + 500)  # reset timer
+    else:
+        drop_timer -= clock.get_time()
 
-    # update and draw ingredients
+    # update the ingredients
     for ingredient in ingredients[:]:
         ingredient.update()
-        ingredient.draw(screen)
 
     # ---- Build rects for player  ----
     player_rect = pygame.Rect(player_x, player_y, PLAYER_WIDTH, PLAYER_HEIGHT)
 
     # ---- Do collision checks ----
     for ingredient in ingredients[:]:
-        drop_rect = ingredient.get_rect()
+        ingredient_rect = ingredient.get_rect()
 
         # ---- Collision check with player----
-        if player_rect.colliderect(drop_rect):
+        if player_rect.colliderect(ingredient_rect):
             score += ingredient.points
             ingredients.remove(ingredient)
             continue  # Skip further checks for this ingredient
 
     # ---- Collision check with other ingredients----
-    # This is a clever bit to show off
     for i in range(len(ingredients)):
         for j in range(i + 1, len(ingredients)):
             rect1 = ingredients[i].get_rect()
@@ -250,19 +252,18 @@ while running:
         ):
             handle_bounce(ingredient)
 
+    # Fill the screen with background color
+    screen.fill(BACKGROUND_COLOR)
+
     # Draw the player
     pygame.draw.rect(
         screen,
         (0, 180, 255),  # cyan-ish color
         (player_x, player_y, PLAYER_WIDTH, PLAYER_HEIGHT),
     )
-
-    # Spawn falling object
-    if drop_timer <= 0:
-        spawn_ingredient(ingredients)
-        drop_timer = random.randint(DROP_TIME - 500, DROP_TIME + 500)  # reset timer
-    else:
-        drop_timer -= clock.get_time()
+    # Draw the ingredients
+    for ingredient in ingredients:
+        ingredient.draw(screen)
 
     # Draw score
     score_text = font.render(f"Score: {score}", True, (255, 255, 255))
